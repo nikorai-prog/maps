@@ -17,19 +17,23 @@ class MainMenu(QWidget, Ui_Form):
 
     def run(self):
         x, y, delta = self.doubleSpinBox.text(), self.doubleSpinBox_2.text(), self.doubleSpinBox_3.text()
-        print(x, y, delta)
-        ex1 = Example()
-        ex1.show()
+        # print(x, y, delta)
+        self.ex1 = Example(x, y, delta)
+        self.ex1.show()
 
 
 class Example(QWidget):
-    def __init__(self):
+    def __init__(self, x, y, delta):
+        print(x, y, delta)
         super().__init__()
         self.getImage()
         self.initUI()
+        self.x = x.replace(',', '.')
+        self.y = y.replace(',', '.')
+        self.delta = delta.replace(',', '.')
 
     def getImage(self):
-        map_request = f"http://static-maps.yandex.ru/1.x/?ll=55.33,55.33&spn=0.02,0.02&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?ll={self.x},{self.y}&spn={self.delta},{self.delta}&l=map"
         response = requests.get(map_request)
 
         if not response:
