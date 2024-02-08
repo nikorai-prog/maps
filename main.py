@@ -3,10 +3,13 @@ import sys
 
 import requests
 from PyQt5.QtGui import QPixmap
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from main_menu import Ui_Form
+from PyQt5 import QtWidgets
 
 SCREEN_SIZE = [600, 450]
+zoom = 0.005
 
 
 class MainMenu(QWidget, Ui_Form):
@@ -15,8 +18,11 @@ class MainMenu(QWidget, Ui_Form):
         self.setupUi(self)
         self.pushButton.clicked.connect(self.run)
 
-    def run(self):
-        x, y, delta = self.doubleSpinBox.text(), self.doubleSpinBox_2.text(), self.doubleSpinBox_3.text()
+    def run(self, x=None, y=None, delta=None):
+        if not x and not y and not delta:
+            x, y, delta = float(self.doubleSpinBox.text().replace(',', '.')),\
+                          float(self.doubleSpinBox_2.text().replace(',', '.')),\
+                          float(self.doubleSpinBox_3.text().replace(',', '.'))
         self.ex1 = Example(x, y, delta)
         self.ex1.show()
 
@@ -24,11 +30,12 @@ class MainMenu(QWidget, Ui_Form):
 class Example(QWidget):
     def __init__(self, x, y, delta):
         super().__init__()
-        self.x = x.replace(',', '.')
-        self.y = y.replace(',', '.')
-        self.delta = delta.replace(',', '.')
+        self.x = x
+        self.y = y
+        self.delta = delta
         self.getImage()
         self.initUI()
+        print(self.delta)
 
     def getImage(self):
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={self.x},{self.y}&spn={self.delta},{self.delta}&l=map"
@@ -55,6 +62,17 @@ class Example(QWidget):
         self.image.move(0, 0)
         self.image.resize(600, 450)
         self.image.setPixmap(self.pixmap)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_PageUp:
+            if self.delta + zoom < 100:
+                self.delta += zoom
+            ex.run(self.x, self.y, self.delta)
+        elif event.key() == QtCore.Qt.Key_PageDown:
+            if self.delta - zoom > 0:
+                self.delta -= zoom
+            ex.run(self.x, self.y, self.delta)
+        event.accept()
 
     def closeEvent(self, event):
         """При закрытии формы подчищаем за собой"""
